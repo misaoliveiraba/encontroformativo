@@ -265,3 +265,13 @@ form button[type="submit"]:hover {
 #reagendamentoForm button:hover {
     background-color: var(--warning-hover);
 }
+/* --- Ajuste para Checkbox de Turno --- */
+.checkbox-group.turnos {
+    grid-template-columns: repeat(3, 1fr); /* 3 colunas para os turnos */
+}
+
+/* Garante que o label do checkbox seja clicável */
+.checkbox-group label {
+    margin-left: 0.25rem;
+    cursor: pointer;
+}
