@@ -179,8 +179,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             div.innerHTML = `
                 <div class="agendamento-info">
-                    <p><strong>Responsável:</strong> ${agendamento.responsavel}</p>
-                    <p><strong>Setor:</strong> ${agendamento.setor || 'Não informado'}</p>
+                    <p><strong>Responsável pelo Agendamento:</strong> ${agendamento.responsavel}</p>
+                    <p><strong>Setor / Secretaria solicitante:</strong> ${agendamento.setor || 'Não informado'}</p>
                     <p><strong>Data:</strong> ${dataFormatada}</p>
                     <p><strong>Turno(s):</strong> ${agendamento.turnos.join(', ')}</p>
                     <p><strong>Local:</strong> ${agendamento.local}</p>
@@ -227,3 +227,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 });
+
