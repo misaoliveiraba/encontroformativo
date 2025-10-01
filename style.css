@@ -1,0 +1,111 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    line-height: 1.6;
+    padding: 20px;
+}
+
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.form-container, .agendamentos-container {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    flex: 1;
+    min-width: 300px;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="date"],
+.form-group select {
+    width: 100%;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+}
+
+.checkbox-group label {
+    margin-right: 15px;
+}
+
+button {
+    display: inline-block;
+    background: #5cb85c;
+    color: #fff;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+button:hover {
+    background: #4cae4c;
+}
+
+.agendamento {
+    background: #f9f9f9;
+    padding: 15px;
+    border-left: 5px solid #5cb85c;
+    margin-bottom: 10px;
+    border-radius: 5px;
+}
+
+.agendamento.cancelado {
+    border-left-color: #d9534f;
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+.agendamento.expirado {
+    border-left-color: #777;
+    opacity: 0.6;
+}
+
+.agendamento-info p {
+    margin: 5px 0;
+}
+
+.agendamento-acoes {
+    margin-top: 10px;
+}
+
+.agendamento-acoes button {
+    margin-right: 10px;
+}
+
+.btn-cancelar {
+    background: #d9534f;
+}
+
+.btn-cancelar:hover {
+    background: #c9302c;
+}
+
+.btn-reagendar {
+    background: #f0ad4e;
+}
+
+.btn-reagendar:hover {
+    background: #ec971f;
+}

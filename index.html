@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Encontros Formativos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <div class="form-container">
+            <h2>Agendar Encontro Formativo</h2>
+            <form id="agendamentoForm">
+                <div class="form-group">
+                    <label for="responsavel">Responsável pelo Encontro</label>
+                    <input type="text" id="responsavel" required>
+                </div>
+                <div class="form-group">
+                    <label for="data">Data</label>
+                    <input type="date" id="data" required>
+                </div>
+                <div class="form-group">
+                    <label for="local">Local</label>
+                    <select id="local" required>
+                        <option value="Sala de Formação 01">Sala de Formação 01</option>
+                        <option value="Sala de Formação 02">Sala de Formação 02</option>
+                        <option value="Sala de Reunião 01">Sala de Reunião 01</option>
+                        <option value="Sala de Reunião 02">Sala de Reunião 02</option>
+                        <option value="Anfiteatro">Anfiteatro</option>
+                        <option value="Externo">Externo</option>
+                    </select>
+                </div>
+                <div class="form-group" id="localExternoContainer" style="display: none;">
+                    <label for="localExterno">Nome do Local Externo</label>
+                    <input type="text" id="localExterno">
+                </div>
+                <div class="form-group">
+                    <label>Recursos Multimídia</label>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="projetor" value="Projetor">
+                        <label for="projetor">Projetor</label>
+                        <input type="checkbox" id="caixaDeSom" value="Caixa de som">
+                        <label for="caixaDeSom">Caixa de som</label>
+                        <input type="checkbox" id="microfone" value="Microfone">
+                        <label for="microfone">Microfone</label>
+                        <input type="checkbox" id="notebook" value="Notebook">
+                        <label for="notebook">Notebook</label>
+                        <input type="checkbox" id="tecnicoTI" value="Técnico de TI">
+                        <label for="tecnicoTI">Técnico de TI</label>
+                        <input type="checkbox" id="nenhum" value="Nenhum">
+                        <label for="nenhum">Nenhum</label>
+                    </div>
+                </div>
+                <button type="submit">Enviar</button>
+            </form>
+        </div>
+
+        <div class="agendamentos-container">
+            <h2>Encontros Agendados</h2>
+            <div id="listaAgendamentos">
+                </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <script src="script.js"></script>
+</body>
+</html>
