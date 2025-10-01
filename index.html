@@ -4,11 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controle de Encontros Formativos</title>
-    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
-    
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -68,10 +66,38 @@
         </div>
     </div>
 
+    <div id="reagendamentoModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Reagendar Encontro</h2>
+            <form id="reagendamentoForm">
+                <input type="hidden" id="reagendamentoId">
+                <div class="form-group">
+                    <label for="novaData">Nova Data</label>
+                    <input type="date" id="novaData" required>
+                </div>
+                <div class="form-group">
+                    <label for="novoLocal">Novo Local</label>
+                    <select id="novoLocal" required>
+                        <option value="Sala de Formação 01">Sala de Formação 01</option>
+                        <option value="Sala de Formação 02">Sala de Formação 02</option>
+                        <option value="Sala de Reunião 01">Sala de Reunião 01</option>
+                        <option value="Sala de Reunião 02">Sala de Reunião 02</option>
+                        <option value="Anfiteatro">Anfiteatro</option>
+                        <option value="Externo">Externo</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="responsavelReagendamento">Responsável pelo Reagendamento</label>
+                    <input type="text" id="responsavelReagendamento" required>
+                </div>
+                <button type="submit">Confirmar Reagendamento</button>
+            </form>
+        </div>
+    </div>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
     <script src="script.js"></script>
 </body>
-
 </html>
