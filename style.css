@@ -1,236 +1,300 @@
-// Suas credenciais do Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyAYQfcsrfabqpZ8AuXeBL2PiR_uDkAHcpY",
-  authDomain: "encontroformativo-3ac69.firebaseapp.com",
-  databaseURL: "https://encontroformativo-3ac69-default-rtdb.firebaseio.com",
-  projectId: "encontroformativo-3ac69",
-  storageBucket: "encontroformativo-3ac69.appspot.com",
-  messagingSenderId: "381346392383",
-  appId: "1:381346392383:web:ffc768a01f7834a09fcb8a",
-  measurementId: "G-CS3TWF65QB"
-};
-
-// Inicializa o Firebase
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
-
-// --- MAPEAMENTO DE ELEMENTOS DO DOM ---
-const form = document.getElementById('agendamentoForm');
-const localSelect = document.getElementById('local');
-const localExternoContainer = document.getElementById('localExternoContainer');
-const listaAgendamentos = document.getElementById('listaAgendamentos');
-
-// Elementos da Modal
-const modal = document.getElementById('reagendamentoModal');
-const closeModalButton = document.querySelector('.close-button');
-const reagendamentoForm = document.getElementById('reagendamentoForm');
-
-let todosAgendamentos = [];
-
-// --- CONFIGURAÇÃO INICIAL ---
-
-// Pega a data de hoje no formato YYYY-MM-DD para usar na validação
-const getHojeFormatado = () => {
-    const hoje = new Date();
-    const offset = hoje.getTimezoneOffset();
-    const hojeLocal = new Date(hoje.getTime() - (offset*60*1000));
-    return hojeLocal.toISOString().split('T')[0];
-};
-
-const dataDeHoje = getHojeFormatado();
-
-// Define a data mínima nos campos de data para bloquear seleção no calendário
-document.getElementById('data').min = dataDeHoje;
-document.getElementById('novaData').min = dataDeHoje;
-
-
-// --- EVENT LISTENERS ---
-
-// Mostra/Oculta o campo de local externo
-localSelect.addEventListener('change', (e) => {
-    localExternoContainer.style.display = e.target.value === 'Externo' ? 'block' : 'none';
-});
-
-// Envio do formulário de agendamento principal
-form.addEventListener('submit', (e) => {
-    e.preventDefault();
-
-    const responsavel = document.getElementById('responsavel').value;
-    const setor = document.getElementById('setor').value;
-    const data = document.getElementById('data').value;
-    
-    // VERIFICAÇÃO DE DATA RETROATIVA
-    if (data < dataDeHoje) {
-        alert("Não é possível agendar encontros com data retroativa.");
-        return;
-    }
-    
-    let local = localSelect.value;
-    if (local === 'Externo') {
-        local = document.getElementById('localExterno').value;
-    }
-
-    const turnos = Array.from(document.querySelectorAll('input[name="turno"]:checked')).map(cb => cb.value);
-    const recursos = Array.from(document.querySelectorAll('input[name="recurso"]:checked')).map(cb => cb.value);
-
-    if (!responsavel || !setor || !data || !local || turnos.length === 0) {
-        alert("Por favor, preencha todos os campos obrigatórios.");
-        return;
-    }
-
-    const disponivel = verificarDisponibilidade(data, local, turnos);
-    if (!disponivel) {
-        alert(`O local "${local}" já está ocupado nos turnos selecionados para esta data.`);
-        return;
-    }
-    
-    const agendamento = { responsavel, setor, data, local, turnos, recursos, status: 'ativo' };
-
-    database.ref('agendamentos').push(agendamento)
-        .then(() => {
-            alert("Encontro agendado com sucesso!");
-            form.reset();
-            document.getElementById('data').min = dataDeHoje; // Re-aplica o min após reset
-            localExternoContainer.style.display = 'none';
-        })
-        .catch(error => console.error("Erro ao agendar:", error));
-});
-
-// Fecha a modal
-closeModalButton.onclick = () => { modal.style.display = "none"; }
-window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; }
-
-// Processa o formulário de reagendamento
-reagendamentoForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const id = document.getElementById('reagendamentoId').value;
-    const novaData = document.getElementById('novaData').value;
-    
-    // VERIFICAÇÃO DE DATA RETROATIVA
-    if (novaData < dataDeHoje) {
-        alert("Não é possível reagendar encontros com data retroativa.");
-        return;
-    }
-
-    const novoLocal = document.getElementById('novoLocal').value;
-    const novosTurnos = Array.from(document.querySelectorAll('input[name="novoTurno"]:checked')).map(cb => cb.value);
-    const responsavelReagendamento = document.getElementById('responsavelReagendamento').value;
-
-    if (novosTurnos.length === 0 || !responsavelReagendamento) {
-        alert("Por favor, preencha todos os campos para reagendar.");
-        return;
-    }
-
-    const disponivel = verificarDisponibilidade(novaData, novoLocal, novosTurnos, id);
-    if (!disponivel) {
-        alert(`O local "${novoLocal}" já está ocupado nos turnos selecionados para esta data.`);
-        return;
-    }
-
-    database.ref('agendamentos/' + id).update({
-        data: novaData,
-        local: novoLocal,
-        turnos: novosTurnos,
-        reagendadoPor: responsavelReagendamento,
-        status: 'ativo'
-    });
-
-    modal.style.display = "none";
-});
-
-
-// --- FUNÇÕES PRINCIPAIS ---
-
-function verificarDisponibilidade(data, local, turnos, idIgnorado = null) {
-    if (local === 'Externo') return true;
-
-    const conflitos = todosAgendamentos.filter(ag => {
-        if (ag.id === idIgnorado || ag.status === 'cancelado') return false;
-        
-        return ag.data === data && ag.local === local &&
-               ag.turnos.some(turnoExistente => turnos.includes(turnoExistente));
-    });
-
-    return conflitos.length === 0;
+/* --- GERAL & RESET --- */
+:root {
+    --primary-color: #3b82f6; /* Azul Principal */
+    --primary-hover: #2563eb;
+    --danger-color: #ef4444; /* Vermelho para Cancelar */
+    --danger-hover: #dc2626;
+    --warning-color: #f59e0b; /* Amarelo para Reagendar */
+    --warning-hover: #d97706;
+    --success-color: #22c55e; /* Verde para Sucesso */
+    --success-hover: #16a34a;
+    --text-color: #374151; /* Cinza Escuro para Textos */
+    --light-gray: #f3f4f6; /* Cinza bem claro para fundos */
+    --border-color: #d1d5db;
+    --card-bg: #ffffff;
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
 
-database.ref('agendamentos').on('value', (snapshot) => {
-    listaAgendamentos.innerHTML = '';
-    const agendamentos = [];
-    snapshot.forEach((childSnapshot) => {
-        agendamentos.push({
-            id: childSnapshot.key,
-            ...childSnapshot.val()
-        });
-    });
-    
-    todosAgendamentos = agendamentos;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-    agendamentos.sort((a, b) => new Date(a.data) - new Date(b.data));
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--light-gray);
+    color: var(--text-color);
+    line-height: 1.6;
+    padding: 2rem;
+}
 
-    const hojeObj = new Date(dataDeHoje + 'T00:00:00');
+/* --- CONTAINER PRINCIPAL --- */
+.container {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
 
-    agendamentos.forEach(agendamento => {
-        const div = document.createElement('div');
-        div.classList.add('agendamento');
+h2 {
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 1.5rem;
+    text-align: center;
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 0.5rem;
+    display: inline-block;
+}
 
-        const dataAgendamento = new Date(agendamento.data + 'T00:00:00');
-        const dataFormatada = new Date(agendamento.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+.form-container, .agendamentos-container {
+    background: var(--card-bg);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+}
 
-        let statusInfo = '';
-        if (agendamento.status === 'cancelado') {
-            div.classList.add('cancelado');
-            statusInfo = `<p><strong>Status:</strong> Cancelado por ${agendamento.canceladoPor}</p>`;
-        } else if (dataAgendamento < hojeObj) {
-            div.classList.add('expirado');
-            statusInfo = `<p><strong>Status:</strong> Encontro Expirado</p>`;
-        } else if (agendamento.reagendadoPor) {
-            statusInfo = `<p style="color: #d97706;"><strong>Status:</strong> Reagendado por ${agendamento.reagendadoPor}</p>`;
-        }
+.form-container h2, .agendamentos-container h2 {
+    display: block;
+    border-bottom: 2px solid var(--light-gray);
+}
 
-        div.innerHTML = `
-            <div class="agendamento-info">
-                <p><strong>Responsável:</strong> ${agendamento.responsavel}</p>
-                <p><strong>Setor:</strong> ${agendamento.setor || 'Não informado'}</p>
-                <p><strong>Data:</strong> ${dataFormatada}</p>
-                <p><strong>Turno(s):</strong> ${agendamento.turnos.join(', ')}</p>
-                <p><strong>Local:</strong> ${agendamento.local}</p>
-                <p><strong>Recursos:</strong> ${agendamento.recursos && agendamento.recursos.length > 0 ? agendamento.recursos.join(', ') : 'Nenhum'}</p>
-                ${statusInfo}
-            </div>
-            <div class="agendamento-acoes">
-                ${agendamento.status !== 'cancelado' && !(dataAgendamento < hojeObj) ? `
-                    <button class="btn-cancelar" onclick="cancelarAgendamento('${agendamento.id}')">Cancelar</button>
-                    <button class="btn-reagendar" onclick="abrirModalReagendamento('${agendamento.id}')">Reagendar</button>
-                ` : ''}
-            </div>
-        `;
-        listaAgendamentos.appendChild(div);
-    });
-});
 
-function cancelarAgendamento(id) {
-    const responsavelCancelamento = prompt("Por favor, informe o nome do responsável pelo cancelamento:");
-    if (responsavelCancelamento) {
-        database.ref('agendamentos/' + id).update({
-            status: 'cancelado',
-            canceladoPor: responsavelCancelamento
-        });
+/* --- FORMULÁRIO --- */
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.form-group input[type="text"],
+.form-group input[type="date"],
+.form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="date"]:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+.checkbox-group {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+}
+
+.checkbox-group div {
+    display: flex;
+    align-items: center;
+}
+
+.checkbox-group label {
+    margin-left: 0.25rem;
+    cursor: pointer;
+}
+
+.checkbox-group.turnos {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+/* --- BOTÕES --- */
+button {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    font-size: 1rem;
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+    color: #fff;
+}
+
+button:hover {
+    transform: translateY(-2px);
+}
+
+form button[type="submit"] {
+    width: 100%;
+    background-color: var(--primary-color);
+}
+
+form button[type="submit"]:hover {
+    background-color: var(--primary-hover);
+}
+
+/* --- LISTA DE AGENDAMENTOS --- */
+.agendamento {
+    background: #fff;
+    padding: 1.25rem;
+    border-left: 5px solid var(--success-color);
+    margin-bottom: 1rem;
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    transition: opacity 0.3s, text-decoration 0.3s;
+}
+
+.agendamento.cancelado {
+    border-left-color: var(--danger-color);
+    text-decoration: line-through;
+    opacity: 0.6;
+    background-color: #fee2e2;
+}
+
+.agendamento.expirado {
+    border-left-color: #9ca3af; /* Cinza para Expirado */
+    opacity: 0.7;
+    background-color: #f1f1f1;
+}
+
+.agendamento-info p {
+    margin: 0.25rem 0;
+}
+
+.agendamento-info strong {
+    color: #4b5563;
+}
+
+.agendamento-acoes {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.agendamento-acoes button {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+
+.btn-cancelar {
+    background: var(--danger-color);
+}
+
+.btn-cancelar:hover {
+    background: var(--danger-hover);
+}
+
+.btn-reagendar {
+    background: var(--warning-color);
+}
+
+.btn-reagendar:hover {
+    background: var(--warning-hover);
+}
+
+/* --- RESPONSIVIDADE --- */
+@media (max-width: 900px) {
+    .container {
+        grid-template-columns: 1fr;
     }
 }
 
-function abrirModalReagendamento(id) {
-    const agendamento = todosAgendamentos.find(ag => ag.id === id);
-    if (!agendamento) return;
+@media (max-width: 480px) {
+    body {
+        padding: 1rem;
+    }
+    .form-container, .agendamentos-container {
+        padding: 1.5rem;
+    }
+    .checkbox-group {
+        grid-template-columns: 1fr;
+    }
+}
 
-    document.getElementById('reagendamentoId').value = id;
-    document.getElementById('novaData').value = agendamento.data;
-    document.getElementById('novoLocal').value = agendamento.local;
-    document.getElementById('responsavelReagendamento').value = '';
+/* --- ESTILOS DA MODAL --- */
+.modal {
+    display: none; /* Escondido por padrão */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+}
 
-    document.querySelectorAll('input[name="novoTurno"]').forEach(checkbox => {
-        checkbox.checked = agendamento.turnos.includes(checkbox.value);
-    });
+.modal-content {
+    background-color: #fefefe;
+    margin: 10% auto;
+    padding: 2rem;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 500px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    position: relative;
+    animation: fadeIn 0.3s;
+}
 
-    modal.style.display = "block";
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.close-button {
+    color: #aaa;
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+#reagendamentoForm button {
+    width: 100%;
+    background-color: var(--warning-color);
+}
+
+#reagendamentoForm button:hover {
+    background-color: var(--warning-hover);
+}
+
+/* --- Caixa de Rolagem para Agendamentos --- */
+#listaAgendamentos {
+    max-height: 600px; /* Você pode ajustar essa altura */
+    overflow-y: auto;  /* Adiciona a barra de rolagem vertical */
+    padding-right: 15px; /* Evita que a barra de rolagem cole no conteúdo */
+}
+
+/* Estilização da Barra de Rolagem (Opcional) */
+#listaAgendamentos::-webkit-scrollbar {
+    width: 8px;
+}
+
+#listaAgendamentos::-webkit-scrollbar-track {
+    background: var(--light-gray);
+    border-radius: 10px;
+}
+
+#listaAgendamentos::-webkit-scrollbar-thumb {
+    background-color: var(--border-color);
+    border-radius: 10px;
+    border: 2px solid var(--light-gray);
+}
+
+#listaAgendamentos::-webkit-scrollbar-thumb:hover {
+    background-color: #a0aec0;
 }
