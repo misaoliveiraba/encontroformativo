@@ -23,9 +23,20 @@
                     <label for="data">Data</label>
                     <input type="date" id="data" required>
                 </div>
+
+                <div class="form-group">
+                    <label>Turno(s)</label>
+                    <div class="checkbox-group turnos">
+                        <div><input type="checkbox" name="turno" value="Manhã"><label>Manhã</label></div>
+                        <div><input type="checkbox" name="turno" value="Tarde"><label>Tarde</label></div>
+                        <div><input type="checkbox" name="turno" value="Noite"><label>Noite</label></div>
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label for="local">Local</label>
                     <select id="local" required>
+                        <option value="">Selecione um local</option>
                         <option value="Sala de Formação 01">Sala de Formação 01</option>
                         <option value="Sala de Formação 02">Sala de Formação 02</option>
                         <option value="Sala de Reunião 01">Sala de Reunião 01</option>
@@ -41,21 +52,15 @@
                 <div class="form-group">
                     <label>Recursos Multimídia</label>
                     <div class="checkbox-group">
-                        <input type="checkbox" id="projetor" value="Projetor">
-                        <label for="projetor">Projetor</label>
-                        <input type="checkbox" id="caixaDeSom" value="Caixa de som">
-                        <label for="caixaDeSom">Caixa de som</label>
-                        <input type="checkbox" id="microfone" value="Microfone">
-                        <label for="microfone">Microfone</label>
-                        <input type="checkbox" id="notebook" value="Notebook">
-                        <label for="notebook">Notebook</label>
-                        <input type="checkbox" id="tecnicoTI" value="Técnico de TI">
-                        <label for="tecnicoTI">Técnico de TI</label>
-                        <input type="checkbox" id="nenhum" value="Nenhum">
-                        <label for="nenhum">Nenhum</label>
+                        <div><input type="checkbox" name="recurso" value="Projetor"><label>Projetor</label></div>
+                        <div><input type="checkbox" name="recurso" value="Caixa de som"><label>Caixa de som</label></div>
+                        <div><input type="checkbox" name="recurso" value="Microfone"><label>Microfone</label></div>
+                        <div><input type="checkbox" name="recurso" value="Notebook"><label>Notebook</label></div>
+                        <div><input type="checkbox" name="recurso" value="Técnico de TI"><label>Técnico de TI</label></div>
+                        <div><input type="checkbox" name="recurso" value="Nenhum"><label>Nenhum</label></div>
                     </div>
                 </div>
-                <button type="submit">Enviar</button>
+                <button type="submit">Agendar</button>
             </form>
         </div>
 
@@ -77,6 +82,14 @@
                     <input type="date" id="novaData" required>
                 </div>
                 <div class="form-group">
+                    <label>Novo(s) Turno(s)</label>
+                    <div class="checkbox-group turnos">
+                        <div><input type="checkbox" name="novoTurno" value="Manhã"><label>Manhã</label></div>
+                        <div><input type="checkbox" name="novoTurno" value="Tarde"><label>Tarde</label></div>
+                        <div><input type="checkbox" name="novoTurno" value="Noite"><label>Noite</label></div>
+                    </div>
+                </div>
+                <div class="form-group">
                     <label for="novoLocal">Novo Local</label>
                     <select id="novoLocal" required>
                         <option value="Sala de Formação 01">Sala de Formação 01</option>
@@ -95,6 +108,7 @@
             </form>
         </div>
     </div>
+
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
