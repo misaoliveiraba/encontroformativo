@@ -12,26 +12,20 @@
 <body>
 
     <div class="container">
-                <div class="form-container">
-    <h2>Agendar Encontro Formativo</h2>
-    <form id="agendamentoForm">
-        <div class="form-group">
-            <label for="responsavel">Responsável pelo Encontro</label>
-            <input type="text" id="responsavel" required>
-        </div>
+        <div class="form-container">
+            <h2>Agendar Encontro Formativo</h2>
+            <form id="agendamentoForm">
+                <div class="form-group">
+                    <label for="responsavel">Responsável pelo Encontro</label>
+                    <input type="text" id="responsavel" required>
+                </div>
 
-        <div class="form-group">
-            <label for="setor">Setor Responsável</label>
-            <input type="text" id="setor" required>
-        </div>
-        
-        <div class="form-group">
-            <label for="data">Data</label>
-            <input type="date" id="data" required>
-        </div>
-
-        </form>
-</div>
+                <!-- CAMPO NOVO ADICIONADO AQUI -->
+                <div class="form-group">
+                    <label for="setor">Setor Responsável</label>
+                    <input type="text" id="setor" required>
+                </div>
+                
                 <div class="form-group">
                     <label for="data">Data</label>
                     <input type="date" id="data" required>
@@ -80,10 +74,12 @@
         <div class="agendamentos-container">
             <h2>Encontros Agendados</h2>
             <div id="listaAgendamentos">
-                </div>
+                <!-- A barra de rolagem será aplicada aqui via CSS -->
+            </div>
         </div>
     </div>
 
+    <!-- JANELA MODAL DE REAGENDAMENTO -->
     <div id="reagendamentoModal" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
@@ -128,5 +124,3 @@
     <script src="script.js"></script>
 </body>
 </html>
-
-
