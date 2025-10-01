@@ -34,8 +34,8 @@ localSelect.addEventListener('change', (e) => {
     localExternoContainer.style.display = e.target.value === 'Externo' ? 'block' : 'none';
 });
 
-// Envio do formulário de agendamento principal
-form.addEventListener('submit', async (e) => {
+// Envio do formulário de agendamento principal (CÓDIGO CORRIGIDO)
+form.addEventListener('submit', (e) => {
     e.preventDefault();
 
     const responsavel = document.getElementById('responsavel').value;
@@ -49,8 +49,8 @@ form.addEventListener('submit', async (e) => {
     const recursos = Array.from(document.querySelectorAll('input[name="recurso"]:checked')).map(cb => cb.value);
 
     // Validação de campos
-    if (turnos.length === 0) {
-        alert("Por favor, selecione pelo menos um turno.");
+    if (!responsavel || !data || !local || turnos.length === 0) {
+        alert("Por favor, preencha todos os campos obrigatórios (Responsável, Data, Local e pelo menos um Turno).");
         return;
     }
 
@@ -126,8 +126,8 @@ function verificarDisponibilidade(data, local, turnos, idIgnorado = null) {
 
     // Filtra os agendamentos relevantes
     const conflitos = todosAgendamentos.filter(ag => {
-        // Ignora o agendamento que está sendo reagendado
-        if (ag.id === idIgnorado) return false;
+        // Ignora o agendamento que está sendo reagendado e os cancelados
+        if (ag.id === idIgnorado || ag.status === 'cancelado') return false;
         
         // Verifica se a data e o local são os mesmos
         return ag.data === data && ag.local === local &&
@@ -167,59 +167,4 @@ database.ref('agendamentos').on('value', (snapshot) => {
         let statusInfo = '';
         if (agendamento.status === 'cancelado') {
             div.classList.add('cancelado');
-            statusInfo = `<p><strong>Status:</strong> Cancelado por ${agendamento.canceladoPor}</p>`;
-        } else if (dataAgendamento < hoje) {
-            div.classList.add('expirado');
-            statusInfo = `<p><strong>Status:</strong> Encontro Expirado</p>`;
-        } else if (agendamento.reagendadoPor) {
-            statusInfo = `<p style="color: #d97706;"><strong>Status:</strong> Reagendado por ${agendamento.reagendadoPor}</p>`;
-        }
-
-        div.innerHTML = `
-            <div class="agendamento-info">
-                <p><strong>Responsável:</strong> ${agendamento.responsavel}</p>
-                <p><strong>Data:</strong> ${dataFormatada}</p>
-                <p><strong>Turno(s):</strong> ${agendamento.turnos.join(', ')}</p> <p><strong>Local:</strong> ${agendamento.local}</p>
-                <p><strong>Recursos:</strong> ${agendamento.recursos ? agendamento.recursos.join(', ') : 'N/A'}</p>
-                ${statusInfo}
-            </div>
-            <div class="agendamento-acoes">
-                ${agendamento.status !== 'cancelado' && !(dataAgendamento < hoje) ? `
-                    <button class="btn-cancelar" onclick="cancelarAgendamento('${agendamento.id}')">Cancelar</button>
-                    <button class="btn-reagendar" onclick="abrirModalReagendamento('${agendamento.id}')">Reagendar</button>
-                ` : ''}
-            </div>
-        `;
-        listaAgendamentos.appendChild(div);
-    });
-});
-
-// Função para cancelar agendamento
-function cancelarAgendamento(id) {
-    const responsavelCancelamento = prompt("Por favor, informe o nome do responsável pelo cancelamento:");
-    if (responsavelCancelamento) {
-        database.ref('agendamentos/' + id).update({
-            status: 'cancelado',
-            canceladoPor: responsavelCancelamento
-        });
-    }
-}
-
-// Função para ABRIR A MODAL de reagendamento
-function abrirModalReagendamento(id) {
-    const agendamento = todosAgendamentos.find(ag => ag.id === id);
-    if (!agendamento) return;
-
-    // Preenche os campos da modal com os dados atuais
-    document.getElementById('reagendamentoId').value = id;
-    document.getElementById('novaData').value = agendamento.data;
-    document.getElementById('novoLocal').value = agendamento.local;
-    document.getElementById('responsavelReagendamento').value = '';
-
-    // Marca os checkboxes dos turnos atuais
-    document.querySelectorAll('input[name="novoTurno"]').forEach(checkbox => {
-        checkbox.checked = agendamento.turnos.includes(checkbox.value);
-    });
-
-    modal.style.display = "block";
-}
+            statusInfo = `<p><strong>Status:</strong> Cancelado por ${
