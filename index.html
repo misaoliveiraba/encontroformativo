@@ -11,27 +11,28 @@
 </head>
 <body>
 
+    <!-- CABEÇALHO COM AS LOGOS -->
+    <header class="app-header">
+        <img src="marca-prefeitura-nova.pdf.png" alt="Logo da Prefeitura" class="logo-left">
+        <img src="EDUCAÇÃO (2).jpg" alt="Logo da Educação" class="logo-right">
+    </header>
+
     <div class="container">
         <div class="form-container">
             <h2>Agendar Encontro Formativo</h2>
             <form id="agendamentoForm">
                 <div class="form-group">
-                    <!-- NOME ALTERADO AQUI -->
                     <label for="responsavel">Responsável pelo Agendamento</label>
                     <input type="text" id="responsavel" required>
                 </div>
-
-                <!-- CAMPO ADICIONADO COM O NOME CORRETO -->
                 <div class="form-group">
                     <label for="setor">Setor / Secretaria solicitante</label>
                     <input type="text" id="setor" required>
                 </div>
-                
                 <div class="form-group">
                     <label for="data">Data</label>
                     <input type="date" id="data" required>
                 </div>
-
                 <div class="form-group">
                     <label>Turno(s)</label>
                     <div class="checkbox-group turnos">
@@ -40,7 +41,6 @@
                         <div><input type="checkbox" name="turno" value="Noite"><label>Noite</label></div>
                     </div>
                 </div>
-
                 <div class="form-group">
                     <label for="local">Local</label>
                     <select id="local" required>
