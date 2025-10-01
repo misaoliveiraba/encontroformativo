@@ -1,3 +1,24 @@
+/* --- CABEÇALHO E LOGOS --- */
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background-color: var(--card-bg);
+    box-shadow: var(--shadow);
+    border-radius: 12px;
+    margin-bottom: 2rem;
+}
+
+.logo-left {
+    height: 60px; /* Ajuste a altura conforme necessário */
+}
+
+.logo-right {
+    height: 50px; /* Ajuste a altura conforme necessário */
+}
+
+
 /* --- GERAL & RESET --- */
 :root {
     --primary-color: #3b82f6; /* Azul Principal */
@@ -101,13 +122,8 @@ h2 {
     align-items: center;
 }
 
-.checkbox-group label {
-    margin-left: 0.25rem;
-    cursor: pointer;
-}
-
-.checkbox-group.turnos {
-    grid-template-columns: repeat(3, 1fr);
+.checkbox-group input[type="checkbox"] {
+    margin-right: 0.5rem;
 }
 
 /* --- BOTÕES --- */
@@ -196,23 +212,31 @@ form button[type="submit"]:hover {
     background: var(--warning-hover);
 }
 
-/* --- RESPONSIVIDADE --- */
-@media (max-width: 900px) {
-    .container {
-        grid-template-columns: 1fr;
-    }
+/* --- Caixa de Rolagem para Agendamentos --- */
+#listaAgendamentos {
+    max-height: 600px; /* Você pode ajustar essa altura conforme sua preferência */
+    overflow-y: auto;  /* Adiciona a barra de rolagem vertical quando necessário */
+    padding-right: 15px; /* Evita que a barra de rolagem encoste no conteúdo */
 }
 
-@media (max-width: 480px) {
-    body {
-        padding: 1rem;
-    }
-    .form-container, .agendamentos-container {
-        padding: 1.5rem;
-    }
-    .checkbox-group {
-        grid-template-columns: 1fr;
-    }
+/* --- Estilização da Barra de Rolagem (Opcional, para um visual mais moderno) --- */
+#listaAgendamentos::-webkit-scrollbar {
+    width: 8px;
+}
+
+#listaAgendamentos::-webkit-scrollbar-track {
+    background: var(--light-gray);
+    border-radius: 10px;
+}
+
+#listaAgendamentos::-webkit-scrollbar-thumb {
+    background-color: var(--border-color);
+    border-radius: 10px;
+    border: 2px solid var(--light-gray);
+}
+
+#listaAgendamentos::-webkit-scrollbar-thumb:hover {
+    background-color: #a0aec0;
 }
 
 /* --- ESTILOS DA MODAL --- */
@@ -272,29 +296,39 @@ form button[type="submit"]:hover {
     background-color: var(--warning-hover);
 }
 
-/* --- Caixa de Rolagem para Agendamentos --- */
-#listaAgendamentos {
-    max-height: 600px; /* Você pode ajustar essa altura */
-    overflow-y: auto;  /* Adiciona a barra de rolagem vertical */
-    padding-right: 15px; /* Evita que a barra de rolagem cole no conteúdo */
+
+/* --- RESPONSIVIDADE --- */
+@media (max-width: 900px) {
+    .container {
+        grid-template-columns: 1fr;
+    }
 }
 
-/* Estilização da Barra de Rolagem (Opcional) */
-#listaAgendamentos::-webkit-scrollbar {
-    width: 8px;
+@media (max-width: 480px) {
+    body {
+        padding: 1rem;
+    }
+    .app-header {
+        padding: 1rem;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .form-container, .agendamentos-container {
+        padding: 1.5rem;
+    }
+    .checkbox-group {
+        grid-template-columns: 1fr;
+    }
 }
 
-#listaAgendamentos::-webkit-scrollbar-track {
-    background: var(--light-gray);
-    border-radius: 10px;
+/* --- Ajuste para Checkbox de Turno --- */
+.checkbox-group.turnos {
+    grid-template-columns: repeat(3, 1fr); /* 3 colunas para os turnos */
 }
 
-#listaAgendamentos::-webkit-scrollbar-thumb {
-    background-color: var(--border-color);
-    border-radius: 10px;
-    border: 2px solid var(--light-gray);
+/* Garante que o label do checkbox seja clicável */
+.checkbox-group label {
+    margin-left: 0.25rem;
+    cursor: pointer;
 }
 
-#listaAgendamentos::-webkit-scrollbar-thumb:hover {
-    background-color: #a0aec0;
-}
