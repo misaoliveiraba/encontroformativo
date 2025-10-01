@@ -144,22 +144,46 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     database.ref('agendamentos').on('value', (snapshot) => {
+        const cincoDiasAtras = new Date();
+        cincoDiasAtras.setHours(0, 0, 0, 0);
+        cincoDiasAtras.setDate(cincoDiasAtras.getDate() - 5);
+        
         listaAgendamentos.innerHTML = '';
-        const agendamentos = [];
+        const agendamentosParaRenderizar = [];
+
         snapshot.forEach((childSnapshot) => {
-            agendamentos.push({
-                id: childSnapshot.key,
-                ...childSnapshot.val()
-            });
+            const agendamento = childSnapshot.val();
+            const id = childSnapshot.key;
+            
+            const dataAgendamento = new Date(agendamento.data + 'T00:00:00');
+            const expiradoAntigo = agendamento.status !== 'cancelado' && dataAgendamento < cincoDiasAtras;
+
+            let canceladoAntigo = false;
+            if (agendamento.status === 'cancelado' && agendamento.canceladoEm) {
+                const dataCancelamento = new Date(agendamento.canceladoEm);
+                if (dataCancelamento < cincoDiasAtras) {
+                    canceladoAntigo = true;
+                }
+            }
+            
+            if (expiradoAntigo || canceladoAntigo) {
+                console.log(`Limpando agendamento antigo (${id}). Motivo: ${expiradoAntigo ? 'Expirado' : 'Cancelado'}.`);
+                database.ref('agendamentos/' + id).remove();
+            } else {
+                agendamentosParaRenderizar.push({
+                    id: id,
+                    ...agendamento
+                });
+            }
         });
+        
+        todosAgendamentos = agendamentosParaRenderizar;
 
-        todosAgendamentos = agendamentos;
-
-        agendamentos.sort((a, b) => new Date(a.data) - new Date(b.data));
+        agendamentosParaRenderizar.sort((a, b) => new Date(a.data) - new Date(b.data));
 
         const hojeObj = new Date(dataDeHoje + 'T00:00:00');
 
-        agendamentos.forEach(agendamento => {
+        agendamentosParaRenderizar.forEach(agendamento => {
             const div = document.createElement('div');
             div.classList.add('agendamento');
 
@@ -198,14 +222,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // As funções globais precisam ser anexadas ao objeto window
-    // quando o script está dentro do DOMContentLoaded
     window.cancelarAgendamento = function(id) {
         const responsavelCancelamento = prompt("Por favor, informe o nome do responsável pelo cancelamento:");
         if (responsavelCancelamento) {
             database.ref('agendamentos/' + id).update({
                 status: 'cancelado',
-                canceladoPor: responsavelCancelamento
+                canceladoPor: responsavelCancelamento,
+                canceladoEm: new Date().toISOString()
             });
         }
     }
