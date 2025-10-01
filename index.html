@@ -16,13 +16,14 @@
             <h2>Agendar Encontro Formativo</h2>
             <form id="agendamentoForm">
                 <div class="form-group">
-                    <label for="responsavel">Responsável pelo Encontro</label>
+                    <!-- NOME ALTERADO AQUI -->
+                    <label for="responsavel">Responsável pelo Agendamento</label>
                     <input type="text" id="responsavel" required>
                 </div>
 
-                <!-- CAMPO NOVO ADICIONADO AQUI -->
+                <!-- CAMPO ADICIONADO COM O NOME CORRETO -->
                 <div class="form-group">
-                    <label for="setor">Setor Responsável</label>
+                    <label for="setor">Setor / Secretaria solicitante</label>
                     <input type="text" id="setor" required>
                 </div>
                 
@@ -74,12 +75,11 @@
         <div class="agendamentos-container">
             <h2>Encontros Agendados</h2>
             <div id="listaAgendamentos">
-                <!-- A barra de rolagem será aplicada aqui via CSS -->
+                <!-- Agendamentos serão inseridos aqui -->
             </div>
         </div>
     </div>
 
-    <!-- JANELA MODAL DE REAGENDAMENTO -->
     <div id="reagendamentoModal" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
@@ -124,3 +124,4 @@
     <script src="script.js"></script>
 </body>
 </html>
+
