@@ -25,30 +25,59 @@ const modal = document.getElementById('reagendamentoModal');
 const closeModalButton = document.querySelector('.close-button');
 const reagendamentoForm = document.getElementById('reagendamentoForm');
 
+let todosAgendamentos = []; // Armazena uma cópia local de todos agendamentos para validação
+
 // --- EVENT LISTENERS ---
 
-// Mostra/Oculta o campo de local externo no formulário principal
+// Mostra/Oculta o campo de local externo
 localSelect.addEventListener('change', (e) => {
     localExternoContainer.style.display = e.target.value === 'Externo' ? 'block' : 'none';
 });
 
-// Envio do formulário de agendamento
-form.addEventListener('submit', (e) => {
+// Envio do formulário de agendamento principal
+form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    // ... (código para adicionar agendamento permanece o mesmo)
+
+    const responsavel = document.getElementById('responsavel').value;
+    const data = document.getElementById('data').value;
+    let local = localSelect.value;
+    if (local === 'Externo') {
+        local = document.getElementById('localExterno').value;
+    }
+
+    const turnos = Array.from(document.querySelectorAll('input[name="turno"]:checked')).map(cb => cb.value);
+    const recursos = Array.from(document.querySelectorAll('input[name="recurso"]:checked')).map(cb => cb.value);
+
+    // Validação de campos
+    if (turnos.length === 0) {
+        alert("Por favor, selecione pelo menos um turno.");
+        return;
+    }
+
+    // Lógica de verificação de disponibilidade
+    const disponivel = verificarDisponibilidade(data, local, turnos);
+    if (!disponivel) {
+        alert(`O local "${local}" já está ocupado em um ou mais dos turnos selecionados para esta data. Por favor, escolha outros turnos ou outro local.`);
+        return;
+    }
+    
+    const agendamento = { responsavel, data, local, turnos, recursos, status: 'ativo' };
+
+    database.ref('agendamentos').push(agendamento)
+        .then(() => {
+            alert("Encontro agendado com sucesso!");
+            form.reset();
+            localExternoContainer.style.display = 'none';
+        })
+        .catch(error => {
+            console.error("Erro ao agendar:", error);
+            alert("Ocorreu um erro ao agendar. Tente novamente.");
+        });
 });
 
-// Fecha a modal ao clicar no 'X'
-closeModalButton.onclick = () => {
-    modal.style.display = "none";
-}
-
-// Fecha a modal ao clicar fora dela
-window.onclick = (event) => {
-    if (event.target == modal) {
-        modal.style.display = "none";
-    }
-}
+// Fecha a modal
+closeModalButton.onclick = () => { modal.style.display = "none"; }
+window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; }
 
 // Processa o formulário de reagendamento
 reagendamentoForm.addEventListener('submit', (e) => {
@@ -56,20 +85,58 @@ reagendamentoForm.addEventListener('submit', (e) => {
     const id = document.getElementById('reagendamentoId').value;
     const novaData = document.getElementById('novaData').value;
     const novoLocal = document.getElementById('novoLocal').value;
+    const novosTurnos = Array.from(document.querySelectorAll('input[name="novoTurno"]:checked')).map(cb => cb.value);
     const responsavelReagendamento = document.getElementById('responsavelReagendamento').value;
+
+    if (novosTurnos.length === 0) {
+        alert("Por favor, selecione pelo menos um turno.");
+        return;
+    }
+
+    // Verifica disponibilidade, ignorando o próprio agendamento que está sendo editado
+    const disponivel = verificarDisponibilidade(novaData, novoLocal, novosTurnos, id);
+    if (!disponivel) {
+        alert(`O local "${novoLocal}" já está ocupado em um ou mais dos turnos selecionados para esta data. Por favor, escolha outros turnos ou outro local.`);
+        return;
+    }
 
     database.ref('agendamentos/' + id).update({
         data: novaData,
         local: novoLocal,
+        turnos: novosTurnos,
         reagendadoPor: responsavelReagendamento,
-        status: 'ativo' // Garante que o status volte para ativo caso tenha sido alterado
+        status: 'ativo'
     });
 
     modal.style.display = "none";
 });
 
-
 // --- FUNÇÕES PRINCIPAIS ---
+
+/**
+ * Verifica se um local está disponível em uma data e turnos específicos.
+ * @param {string} data - A data no formato 'YYYY-MM-DD'.
+ * @param {string} local - O nome do local.
+ * @param {string[]} turnos - Array com os turnos desejados (ex: ['Manhã', 'Tarde']).
+ * @param {string|null} idIgnorado - O ID do agendamento a ser ignorado na verificação (útil para reagendamentos).
+ * @returns {boolean} - Retorna true se estiver disponível, false caso contrário.
+ */
+function verificarDisponibilidade(data, local, turnos, idIgnorado = null) {
+    if (local === 'Externo') return true; // Locais externos estão sempre disponíveis
+
+    // Filtra os agendamentos relevantes
+    const conflitos = todosAgendamentos.filter(ag => {
+        // Ignora o agendamento que está sendo reagendado
+        if (ag.id === idIgnorado) return false;
+        
+        // Verifica se a data e o local são os mesmos
+        return ag.data === data && ag.local === local &&
+               // Verifica se há pelo menos um turno em comum (interseção)
+               ag.turnos.some(turnoExistente => turnos.includes(turnoExistente));
+    });
+
+    return conflitos.length === 0; // Se não houver conflitos, está disponível
+}
 
 // Carrega e exibe os agendamentos do Firebase
 database.ref('agendamentos').on('value', (snapshot) => {
@@ -81,6 +148,8 @@ database.ref('agendamentos').on('value', (snapshot) => {
             ...childSnapshot.val()
         });
     });
+    
+    todosAgendamentos = agendamentos; // Atualiza a cópia local para validação
 
     // Ordena os agendamentos por data
     agendamentos.sort((a, b) => new Date(a.data) - new Date(b.data));
@@ -88,21 +157,7 @@ database.ref('agendamentos').on('value', (snapshot) => {
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
 
-    const agendamentosAtivos = [];
-    const agendamentosPassados = [];
-
     agendamentos.forEach(agendamento => {
-        const dataAgendamento = new Date(agendamento.data);
-        if (dataAgendamento < hoje && agendamento.status !== 'cancelado') {
-            agendamentosPassados.push(agendamento);
-        } else {
-            agendamentosAtivos.push(agendamento);
-        }
-    });
-
-    const agendamentosOrdenados = [...agendamentosAtivos, ...agendamentosPassados];
-
-    agendamentosOrdenados.forEach(agendamento => {
         const div = document.createElement('div');
         div.classList.add('agendamento');
 
@@ -116,7 +171,7 @@ database.ref('agendamentos').on('value', (snapshot) => {
         } else if (dataAgendamento < hoje) {
             div.classList.add('expirado');
             statusInfo = `<p><strong>Status:</strong> Encontro Expirado</p>`;
-        } else if (agendamento.reagendadoPor) { // <-- NOVO: Verifica se foi reagendado
+        } else if (agendamento.reagendadoPor) {
             statusInfo = `<p style="color: #d97706;"><strong>Status:</strong> Reagendado por ${agendamento.reagendadoPor}</p>`;
         }
 
@@ -124,14 +179,14 @@ database.ref('agendamentos').on('value', (snapshot) => {
             <div class="agendamento-info">
                 <p><strong>Responsável:</strong> ${agendamento.responsavel}</p>
                 <p><strong>Data:</strong> ${dataFormatada}</p>
-                <p><strong>Local:</strong> ${agendamento.local}</p>
-                <p><strong>Recursos:</strong> ${agendamento.recursos.join(', ')}</p>
+                <p><strong>Turno(s):</strong> ${agendamento.turnos.join(', ')}</p> <p><strong>Local:</strong> ${agendamento.local}</p>
+                <p><strong>Recursos:</strong> ${agendamento.recursos ? agendamento.recursos.join(', ') : 'N/A'}</p>
                 ${statusInfo}
             </div>
             <div class="agendamento-acoes">
                 ${agendamento.status !== 'cancelado' && !(dataAgendamento < hoje) ? `
-                    <button class="btn-cancelar" onclick="cancelarAgendamento('${agendamento.id}')">Cancelar Agendamento</button>
-                    <button class="btn-reagendar" onclick="abrirModalReagendamento('${agendamento.id}', '${agendamento.data}', '${agendamento.local}')">Reagendar</button>
+                    <button class="btn-cancelar" onclick="cancelarAgendamento('${agendamento.id}')">Cancelar</button>
+                    <button class="btn-reagendar" onclick="abrirModalReagendamento('${agendamento.id}')">Reagendar</button>
                 ` : ''}
             </div>
         `;
@@ -151,13 +206,20 @@ function cancelarAgendamento(id) {
 }
 
 // Função para ABRIR A MODAL de reagendamento
-function abrirModalReagendamento(id, dataAtual, localAtual) {
+function abrirModalReagendamento(id) {
+    const agendamento = todosAgendamentos.find(ag => ag.id === id);
+    if (!agendamento) return;
+
     // Preenche os campos da modal com os dados atuais
     document.getElementById('reagendamentoId').value = id;
-    document.getElementById('novaData').value = dataAtual;
-    document.getElementById('novoLocal').value = localAtual;
-    document.getElementById('responsavelReagendamento').value = ''; // Limpa o campo do responsável
+    document.getElementById('novaData').value = agendamento.data;
+    document.getElementById('novoLocal').value = agendamento.local;
+    document.getElementById('responsavelReagendamento').value = '';
 
-    // Exibe a modal
+    // Marca os checkboxes dos turnos atuais
+    document.querySelectorAll('input[name="novoTurno"]').forEach(checkbox => {
+        checkbox.checked = agendamento.turnos.includes(checkbox.value);
+    });
+
     modal.style.display = "block";
 }
