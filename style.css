@@ -275,3 +275,29 @@ form button[type="submit"]:hover {
     margin-left: 0.25rem;
     cursor: pointer;
 }
+/* --- Caixa de Rolagem para Agendamentos --- */
+#listaAgendamentos {
+    max-height: 600px; /* Você pode ajustar essa altura conforme sua preferência */
+    overflow-y: auto;  /* Adiciona a barra de rolagem vertical quando necessário */
+    padding-right: 15px; /* Evita que a barra de rolagem encoste no conteúdo */
+}
+
+/* --- Estilização da Barra de Rolagem (Opcional, para um visual mais moderno) --- */
+#listaAgendamentos::-webkit-scrollbar {
+    width: 8px;
+}
+
+#listaAgendamentos::-webkit-scrollbar-track {
+    background: var(--light-gray);
+    border-radius: 10px;
+}
+
+#listaAgendamentos::-webkit-scrollbar-thumb {
+    background-color: var(--border-color);
+    border-radius: 10px;
+    border: 2px solid var(--light-gray);
+}
+
+#listaAgendamentos::-webkit-scrollbar-thumb:hover {
+    background-color: #a0aec0;
+}
