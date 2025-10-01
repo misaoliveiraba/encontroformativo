@@ -11,7 +11,7 @@
 }
 
 .logo-header {
-    height: 60px; /* Ajuste a altura conforme necessário */
+    height: 100px; /* Ajuste a altura conforme necessário */
     max-width: 100%;
 }
 
@@ -326,4 +326,5 @@ form button[type="submit"]:hover {
     margin-left: 0.25rem;
     cursor: pointer;
 }
+
 
