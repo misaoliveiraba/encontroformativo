@@ -247,12 +247,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Remove a classe de piscar após 3 segundos
+        // Remove a classe de piscar após 7 segundos
         setTimeout(() => {
             document.querySelectorAll('.piscar').forEach(el => {
                 el.classList.remove('piscar');
             });
-        }, 3000);
+        }, 7000);
     });
 
     window.cancelarAgendamento = (id) => {
