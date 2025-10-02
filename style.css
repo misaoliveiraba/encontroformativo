@@ -4,9 +4,9 @@
     --primary-hover: #2563eb;
     --danger-color: #ef4444; /* Vermelho para Cancelar */
     --danger-hover: #dc2626;
-    --warning-color: #f59e0b; /* Amarelo para Reagendar */
+    --warning-color: #f59e0b; /* Amarelo para Reagendar e Próximos */
     --warning-hover: #d97706;
-    --success-color: #22c55e; /* Verde para Sucesso */
+    --success-color: #22c55e; /* Verde para Sucesso e Hoje */
     --success-hover: #16a34a;
     --text-color: #374151; /* Cinza Escuro para Textos */
     --light-gray: #f3f4f6; /* Cinza bem claro para fundos */
@@ -47,6 +47,15 @@ h2 {
     padding-bottom: 0.5rem;
     display: inline-block;
 }
+
+h3 {
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--primary-color);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.25rem;
+}
+
 
 .form-container, .agendamentos-container {
     background: var(--card-bg);
@@ -96,6 +105,10 @@ h2 {
     gap: 0.5rem;
 }
 
+.checkbox-group.turnos {
+    grid-template-columns: repeat(3, 1fr);
+}
+
 .checkbox-group div {
     display: flex;
     align-items: center;
@@ -103,6 +116,11 @@ h2 {
 
 .checkbox-group input[type="checkbox"] {
     margin-right: 0.5rem;
+}
+
+.checkbox-group label {
+    margin-left: 0.25rem;
+    cursor: pointer;
 }
 
 /* --- BOTÕES --- */
@@ -133,15 +151,49 @@ form button[type="submit"]:hover {
 }
 
 /* --- LISTA DE AGENDAMENTOS --- */
+#listaAgendamentos {
+    max-height: 600px;
+    overflow-y: auto;
+    padding-right: 15px;
+}
+
+#listaAgendamentos::-webkit-scrollbar {
+    width: 8px;
+}
+
+#listaAgendamentos::-webkit-scrollbar-track {
+    background: var(--light-gray);
+    border-radius: 10px;
+}
+
+#listaAgendamentos::-webkit-scrollbar-thumb {
+    background-color: var(--border-color);
+    border-radius: 10px;
+    border: 2px solid var(--light-gray);
+}
+
+#listaAgendamentos::-webkit-scrollbar-thumb:hover {
+    background-color: #a0aec0;
+}
+
 .agendamento {
     background: #fff;
     padding: 1.25rem;
-    border-left: 5px solid var(--success-color);
     margin-bottom: 1rem;
     border-radius: 8px;
     box-shadow: var(--shadow);
     transition: opacity 0.3s, text-decoration 0.3s;
+    border-left: 5px solid;
 }
+
+.agendamento-hoje {
+    border-left-color: var(--success-color);
+}
+
+.agendamento-proximo {
+    border-left-color: var(--warning-color);
+}
+
 
 .agendamento.cancelado {
     border-left-color: var(--danger-color);
@@ -151,7 +203,7 @@ form button[type="submit"]:hover {
 }
 
 .agendamento.expirado {
-    border-left-color: #9ca3af; /* Cinza para Expirado */
+    border-left-color: #9ca3af;
     opacity: 0.7;
     background-color: #f1f1f1;
 }
@@ -191,36 +243,21 @@ form button[type="submit"]:hover {
     background: var(--warning-hover);
 }
 
-/* --- Caixa de Rolagem para Agendamentos --- */
-#listaAgendamentos {
-    max-height: 600px; /* Você pode ajustar essa altura conforme sua preferência */
-    overflow-y: auto;  /* Adiciona a barra de rolagem vertical quando necessário */
-    padding-right: 15px; /* Evita que a barra de rolagem encoste no conteúdo */
+/* Animação para piscar */
+@keyframes piscar-borda {
+    50% {
+        box-shadow: 0 0 12px 4px rgba(34, 197, 94, 0.5);
+    }
 }
 
-/* --- Estilização da Barra de Rolagem (Opcional, para um visual mais moderno) --- */
-#listaAgendamentos::-webkit-scrollbar {
-    width: 8px;
+.piscar {
+    animation: piscar-borda 0.7s ease-in-out 4; /* Pisca por ~3 segundos */
 }
 
-#listaAgendamentos::-webkit-scrollbar-track {
-    background: var(--light-gray);
-    border-radius: 10px;
-}
-
-#listaAgendamentos::-webkit-scrollbar-thumb {
-    background-color: var(--border-color);
-    border-radius: 10px;
-    border: 2px solid var(--light-gray);
-}
-
-#listaAgendamentos::-webkit-scrollbar-thumb:hover {
-    background-color: #a0aec0;
-}
 
 /* --- ESTILOS DA MODAL --- */
 .modal {
-    display: none; /* Escondido por padrão */
+    display: none;
     position: fixed;
     z-index: 1000;
     left: 0;
@@ -275,7 +312,6 @@ form button[type="submit"]:hover {
     background-color: var(--warning-hover);
 }
 
-
 /* --- RESPONSIVIDADE --- */
 @media (max-width: 900px) {
     .container {
@@ -293,16 +329,5 @@ form button[type="submit"]:hover {
     .checkbox-group {
         grid-template-columns: 1fr;
     }
-}
-
-/* --- Ajuste para Checkbox de Turno --- */
-.checkbox-group.turnos {
-    grid-template-columns: repeat(3, 1fr); /* 3 colunas para os turnos */
-}
-
-/* Garante que o label do checkbox seja clicável */
-.checkbox-group label {
-    margin-left: 0.25rem;
-    cursor: pointer;
 }
 
