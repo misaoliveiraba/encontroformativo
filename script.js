@@ -21,6 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const localSelect = document.getElementById('local');
     const localExternoContainer = document.getElementById('localExternoContainer');
     const listaAgendamentos = document.getElementById('listaAgendamentos');
+    const recursoCheckboxes = document.querySelectorAll('input[name="recurso"]');
+    const nenhumCheckbox = document.getElementById('recurso-nenhum');
 
     // Elementos da Modal
     const modal = document.getElementById('reagendamentoModal');
@@ -36,17 +38,47 @@ document.addEventListener('DOMContentLoaded', () => {
         const hojeLocal = new Date(hoje.getTime() - (offset * 60 * 1000));
         return hojeLocal.toISOString().split('T')[0];
     };
-
     const dataDeHoje = getHojeFormatado();
-
     document.getElementById('data').min = dataDeHoje;
     document.getElementById('novaData').min = dataDeHoje;
 
+
     // --- EVENT LISTENERS ---
+
+    // Mostra/Oculta o campo de local externo
     localSelect.addEventListener('change', (e) => {
         localExternoContainer.style.display = e.target.value === 'Externo' ? 'block' : 'none';
     });
 
+    // Lógica exclusiva para checkbox "Nenhum"
+    recursoCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', () => {
+            if (checkbox === nenhumCheckbox && checkbox.checked) {
+                recursoCheckboxes.forEach(cb => {
+                    if (cb !== nenhumCheckbox) {
+                        cb.checked = false;
+                        cb.disabled = true;
+                    }
+                });
+            } else if (checkbox === nenhumCheckbox && !checkbox.checked) {
+                recursoCheckboxes.forEach(cb => {
+                    if (cb !== nenhumCheckbox) {
+                        cb.disabled = false;
+                    }
+                });
+            } else if (checkbox !== nenhumCheckbox && checkbox.checked) {
+                nenhumCheckbox.checked = false;
+                nenhumCheckbox.disabled = true;
+            }
+            
+            const algumOutroMarcado = Array.from(recursoCheckboxes).some(cb => cb !== nenhumCheckbox && cb.checked);
+            if (!algumOutroMarcado) {
+                nenhumCheckbox.disabled = false;
+            }
+        });
+    });
+
+    // Envio do formulário de agendamento principal
     form.addEventListener('submit', (e) => {
         e.preventDefault();
 
@@ -67,8 +99,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const turnos = Array.from(document.querySelectorAll('input[name="turno"]:checked')).map(cb => cb.value);
         const recursos = Array.from(document.querySelectorAll('input[name="recurso"]:checked')).map(cb => cb.value);
 
-        if (!responsavel || !setor || !data || !local || turnos.length === 0) {
-            alert("Por favor, preencha todos os campos obrigatórios.");
+        if (!responsavel || !setor || !data || !local || turnos.length === 0 || recursos.length === 0) {
+            alert("Por favor, preencha todos os campos obrigatórios, incluindo a seleção de pelo menos um turno e um recurso multimídia.");
             return;
         }
 
@@ -86,13 +118,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 form.reset();
                 document.getElementById('data').min = dataDeHoje;
                 localExternoContainer.style.display = 'none';
+                recursoCheckboxes.forEach(cb => cb.disabled = false);
             })
             .catch(error => console.error("Erro ao agendar:", error));
     });
 
+    // Fecha a modal
     closeModalButton.onclick = () => { modal.style.display = "none"; }
     window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; }
 
+    // Processa o formulário de reagendamento
     reagendamentoForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const id = document.getElementById('reagendamentoId').value;
@@ -129,64 +164,52 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.style.display = "none";
     });
 
+
     // --- FUNÇÕES PRINCIPAIS ---
     function verificarDisponibilidade(data, local, turnos, idIgnorado = null) {
         if (local === 'Externo') return true;
-
         const conflitos = todosAgendamentos.filter(ag => {
             if (ag.id === idIgnorado || ag.status === 'cancelado') return false;
-
             return ag.data === data && ag.local === local &&
                 ag.turnos.some(turnoExistente => turnos.includes(turnoExistente));
         });
-
         return conflitos.length === 0;
     }
 
     database.ref('agendamentos').on('value', (snapshot) => {
-        const cincoDiasAtras = new Date();
-        cincoDiasAtras.setHours(0, 0, 0, 0);
-        cincoDiasAtras.setDate(cincoDiasAtras.getDate() - 5);
-        
         listaAgendamentos.innerHTML = '';
-        const agendamentosParaRenderizar = [];
-
+        const agendamentos = [];
         snapshot.forEach((childSnapshot) => {
-            const agendamento = childSnapshot.val();
-            const id = childSnapshot.key;
-            
-            const dataAgendamento = new Date(agendamento.data + 'T00:00:00');
-            const expiradoAntigo = agendamento.status !== 'cancelado' && dataAgendamento < cincoDiasAtras;
+            agendamentos.push({
+                id: childSnapshot.key,
+                ...childSnapshot.val()
+            });
+        });
 
-            let canceladoAntigo = false;
-            if (agendamento.status === 'cancelado' && agendamento.canceladoEm) {
-                const dataCancelamento = new Date(agendamento.canceladoEm);
-                if (dataCancelamento < cincoDiasAtras) {
-                    canceladoAntigo = true;
-                }
-            }
+        todosAgendamentos = agendamentos;
+        
+        const cincoDiasAtras = new Date();
+        cincoDiasAtras.setDate(cincoDiasAtras.getDate() - 5);
+
+        agendamentos.forEach(agendamento => {
+            const dataAgendamento = new Date(agendamento.data + 'T00:00:00');
+            const dataCancelamento = agendamento.canceladoEm ? new Date(agendamento.canceladoEm) : null;
             
-            if (expiradoAntigo || canceladoAntigo) {
-                console.log(`Limpando agendamento antigo (${id}). Motivo: ${expiradoAntigo ? 'Expirado' : 'Cancelado'}.`);
-                database.ref('agendamentos/' + id).remove();
-            } else {
-                agendamentosParaRenderizar.push({
-                    id: id,
-                    ...agendamento
-                });
+            const isExpiradoAntigo = dataAgendamento < cincoDiasAtras;
+            const isCanceladoAntigo = dataCancelamento && dataCancelamento < cincoDiasAtras;
+
+            if (isExpiradoAntigo || isCanceladoAntigo) {
+                database.ref('agendamentos/' + agendamento.id).remove();
             }
         });
-        
-        todosAgendamentos = agendamentosParaRenderizar;
 
-        agendamentosParaRenderizar.sort((a, b) => new Date(a.data) - new Date(b.data));
+        agendamentos.sort((a, b) => new Date(a.data) - new Date(b.data));
 
         const hojeObj = new Date(dataDeHoje + 'T00:00:00');
 
-        agendamentosParaRenderizar.forEach(agendamento => {
+        agendamentos.forEach(agendamento => {
             const div = document.createElement('div');
             div.classList.add('agendamento');
-
             const dataAgendamento = new Date(agendamento.data + 'T00:00:00');
             const dataFormatada = new Date(agendamento.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
 
@@ -222,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    window.cancelarAgendamento = function(id) {
+    function cancelarAgendamento(id) {
         const responsavelCancelamento = prompt("Por favor, informe o nome do responsável pelo cancelamento:");
         if (responsavelCancelamento) {
             database.ref('agendamentos/' + id).update({
@@ -233,21 +256,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    window.abrirModalReagendamento = function(id) {
+    function abrirModalReagendamento(id) {
         const agendamento = todosAgendamentos.find(ag => ag.id === id);
         if (!agendamento) return;
-
         document.getElementById('reagendamentoId').value = id;
         document.getElementById('novaData').value = agendamento.data;
         document.getElementById('novoLocal').value = agendamento.local;
         document.getElementById('responsavelReagendamento').value = '';
-
         document.querySelectorAll('input[name="novoTurno"]').forEach(checkbox => {
             checkbox.checked = agendamento.turnos.includes(checkbox.value);
         });
-
         modal.style.display = "block";
     }
-
 });
 
