@@ -251,7 +251,7 @@ form button[type="submit"]:hover {
 }
 
 .piscar {
-    animation: piscar-borda 0.7s ease-in-out 4; /* Pisca por ~3 segundos */
+    animation: piscar-borda 0.7s ease-in-out 10; /* Pisca 10 vezes */
 }
 
 
