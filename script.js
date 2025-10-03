@@ -43,9 +43,26 @@ document.addEventListener('DOMContentLoaded', () => {
         const hojeLocal = new Date(hoje.getTime() - (offset * 60 * 1000));
         return hojeLocal.toISOString().split('T')[0];
     };
+    
+    const getFimDoProximoMesFormatado = () => {
+        const hoje = new Date();
+        const ano = hoje.getFullYear();
+        const mes = hoje.getMonth(); // 0-11
+        // O último dia do próximo mês é o dia 0 do mês seguinte a ele (mês + 2)
+        const ultimoDiaProximoMes = new Date(ano, mes + 2, 0);
+        const offset = ultimoDiaProximoMes.getTimezoneOffset();
+        const dataLocal = new Date(ultimoDiaProximoMes.getTime() - (offset * 60 * 1000));
+        return dataLocal.toISOString().split('T')[0];
+    };
+
     const dataDeHoje = getHojeFormatado();
+    const dataMaxima = getFimDoProximoMesFormatado();
+
+    // Define a data mínima e máxima nos campos de data
     document.getElementById('data').min = dataDeHoje;
+    document.getElementById('data').max = dataMaxima;
     document.getElementById('novaData').min = dataDeHoje;
+    document.getElementById('novaData').max = dataMaxima;
 
     // --- EVENT LISTENERS ---
     
@@ -90,6 +107,11 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        if (data > dataMaxima) {
+            alert("Só é possível agendar para o mês atual ou o mês seguinte.");
+            return;
+        }
+
         let local = localSelect.value;
         if (local === 'Externo') {
             local = document.getElementById('localExterno').value;
@@ -116,6 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert("Encontro agendado com sucesso!");
                 form.reset();
                 document.getElementById('data').min = dataDeHoje;
+                document.getElementById('data').max = dataMaxima;
                 localExternoContainer.style.display = 'none';
                 recursoCheckboxes.forEach(cb => cb.disabled = false);
             })
@@ -179,6 +202,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (novaData < dataDeHoje) {
             alert("Não é possível reagendar para uma data retroativa.");
+            return;
+        }
+
+        if (novaData > dataMaxima) {
+            alert("Só é possível reagendar para o mês atual ou o mês seguinte.");
             return;
         }
 
@@ -325,3 +353,4 @@ document.addEventListener('DOMContentLoaded', () => {
         confirmacaoModal.style.display = 'block';
     }
 });
+
