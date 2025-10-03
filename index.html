@@ -56,9 +56,9 @@
                     <div class="checkbox-group">
                         <div><input type="checkbox" id="recurso-projetor" name="recurso" value="Projetor"><label for="recurso-projetor">Projetor</label></div>
                         <div><input type="checkbox" id="recurso-caixa" name="recurso" value="Caixa de som"><label for="recurso-caixa">Caixa de som</label></div>
-                        <div><input type="checkbox" id="recurso-mic" name="recurso" value="Microfone"><label for="recurso-mic">Microfone</label></div>
-                        <div><input type="checkbox" id="recurso-note" name="recurso" value="Notebook"><label for="recurso-note">Notebook</label></div>
-                        <div><input type="checkbox" id="recurso-ti" name="recurso" value="Técnico de TI"><label for="recurso-ti">Técnico de TI</label></div>
+                        <div><input type="checkbox" id="recurso-microfone" name="recurso" value="Microfone"><label for="recurso-microfone">Microfone</label></div>
+                        <div><input type="checkbox" id="recurso-notebook" name="recurso" value="Notebook"><label for="recurso-notebook">Notebook</label></div>
+                        <div><input type="checkbox" id="recurso-tecnico" name="recurso" value="Técnico de TI"><label for="recurso-tecnico">Técnico de TI</label></div>
                         <div><input type="checkbox" id="recurso-nenhum" name="recurso" value="Nenhum"><label for="recurso-nenhum">Nenhum</label></div>
                     </div>
                 </div>
@@ -69,19 +69,17 @@
         <div class="agendamentos-container">
             <h2>Encontros Agendados</h2>
             <div id="listaAgendamentos">
-                <!-- Seções de agendamentos serão inseridas aqui -->
-                 <h3>Formações para hoje</h3>
-                <div id="agendamentosHoje" class="lista-secao"></div>
-
+                <h3>Formações para hoje</h3>
+                <div id="agendamentosHoje"></div>
                 <h3>Próximas formações</h3>
-                <div id="agendamentosProximos" class="lista-secao"></div>
-                
+                <div id="agendamentosProximos"></div>
                 <h3>Histórico</h3>
-                <div id="agendamentosHistorico" class="lista-secao"></div>
+                <div id="agendamentosHistorico"></div>
             </div>
         </div>
     </div>
 
+    <!-- JANELA MODAL DE REAGENDAMENTO -->
     <div id="reagendamentoModal" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
@@ -112,7 +110,7 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="responsavelReagendamento">Responsável pelo Reagendamento</label>
+                    <label for="responsavelReagendamento">Seu Nome (Responsável pelo Reagendamento)</label>
                     <input type="text" id="responsavelReagendamento" required>
                 </div>
                 <button type="submit">Confirmar Reagendamento</button>
@@ -120,10 +118,37 @@
         </div>
     </div>
 
+    <!-- NOVA JANELA MODAL DE CONFIRMAÇÃO COM SENHA -->
+    <div id="confirmacaoModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2 id="confirmacaoTitulo">Confirmar Ação</h2>
+            <form id="confirmacaoForm">
+                <input type="hidden" id="confirmacaoAgendamentoId">
+                <input type="hidden" id="confirmacaoTipoAcao">
+                
+                <div class="form-group">
+                    <label for="responsavelAcao">Seu Nome (Responsável pela Ação)</label>
+                    <input type="text" id="responsavelAcao" required>
+                </div>
+                <div class="form-group">
+                    <label for="senhaAcao">Senha de Administrador</label>
+                    <input type="password" id="senhaAcao" required>
+                </div>
+                <p class="aviso-senha">
+                    Os cancelamentos e reagendamentos só poderão ser efetuados pela gerência de TI ou por pessoas autorizadas. 
+                    Em caso de dúvida, procure a sala de TI.
+                </p>
+                <button type="submit">Confirmar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
     <script src="script.js"></script>
 </body>
 </html>
+
 
