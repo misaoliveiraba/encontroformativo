@@ -161,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('novoLocal').value = agendamento.local;
                 document.getElementById('responsavelReagendamento').value = responsavelAcao;
                 document.querySelectorAll('input[name="novoTurno"]').forEach(checkbox => {
-                    checkbox.checked = agendamento.turnos.includes(checkbox.value);
+                    checkbox.checked = (agendamento.turnos && agendamento.turnos.includes(checkbox.value));
                 });
                 reagendamentoModal.style.display = 'block';
             }
@@ -208,14 +208,13 @@ document.addEventListener('DOMContentLoaded', () => {
         alert("Agendamento reagendado com sucesso!");
     });
 
-
     // --- FUNÇÕES ---
     function verificarDisponibilidade(data, local, turnos, idIgnorado = null) {
         if (local === 'Externo') return true;
         const conflitos = todosAgendamentos.filter(ag => {
             if (ag.id === idIgnorado || ag.status === 'cancelado') return false;
             return ag.data === data && ag.local === local &&
-                ag.turnos.some(turnoExistente => turnos.includes(turnoExistente));
+                (ag.turnos && ag.turnos.some(turnoExistente => turnos.includes(turnoExistente)));
         });
         return conflitos.length === 0;
     }
@@ -227,6 +226,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const hojeObj = new Date(dataDeHoje + 'T00:00:00');
         const dataAgendamento = new Date(agendamento.data + 'T00:00:00');
         const dataFormatada = new Date(agendamento.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+
+        // **INÍCIO DA CORREÇÃO** - Verificações de segurança
+        const turnosTexto = (agendamento.turnos && Array.isArray(agendamento.turnos)) ? agendamento.turnos.join(', ') : 'Não informado';
+        const recursosTexto = (agendamento.recursos && Array.isArray(agendamento.recursos) && agendamento.recursos.length > 0) ? agendamento.recursos.join(', ') : 'Nenhum';
+        // **FIM DA CORREÇÃO**
 
         let statusInfo = '';
         if (agendamento.status === 'cancelado') {
@@ -241,12 +245,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         div.innerHTML = `
             <div class="agendamento-info">
-                <p><strong>Responsável pelo Agendamento:</strong> ${agendamento.responsavel}</p>
+                <p><strong>Responsável pelo Agendamento:</strong> ${agendamento.responsavel || 'Não informado'}</p>
                 <p><strong>Setor / Secretaria solicitante:</strong> ${agendamento.setor || 'Não informado'}</p>
                 <p><strong>Data:</strong> ${dataFormatada}</p>
-                <p><strong>Turno(s):</strong> ${agendamento.turnos.join(', ')}</p>
-                <p><strong>Local:</strong> ${agendamento.local}</p>
-                <p><strong>Recursos:</strong> ${agendamento.recursos && agendamento.recursos.length > 0 ? agendamento.recursos.join(', ') : 'Nenhum'}</p>
+                <p><strong>Turno(s):</strong> ${turnosTexto}</p>
+                <p><strong>Local:</strong> ${agendamento.local || 'Não informado'}</p>
+                <p><strong>Recursos:</strong> ${recursosTexto}</p>
                 ${statusInfo}
             </div>
             <div class="agendamento-acoes">
@@ -265,11 +269,13 @@ document.addEventListener('DOMContentLoaded', () => {
         agendamentosHistoricoDiv.innerHTML = '';
         
         const agendamentos = [];
-        snapshot.forEach((childSnapshot) => {
-            agendamentos.push({
-                id: childSnapshot.key, ...childSnapshot.val()
+        if (snapshot.exists()) {
+            snapshot.forEach((childSnapshot) => {
+                agendamentos.push({
+                    id: childSnapshot.key, ...childSnapshot.val()
+                });
             });
-        });
+        }
 
         todosAgendamentos = agendamentos;
         
@@ -311,7 +317,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 7000);
     });
 
-    // FUNÇÃO GLOBAL PARA SER CHAMADA PELO HTML (onclick)
     window.solicitarConfirmacao = (tipo, id) => {
         document.getElementById('confirmacaoAgendamentoId').value = id;
         document.getElementById('confirmacaoTipoAcao').value = tipo;
