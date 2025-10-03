@@ -82,6 +82,7 @@ h3 {
 }
 
 .form-group input[type="text"],
+.form-group input[type="password"],
 .form-group input[type="date"],
 .form-group select {
     width: 100%;
@@ -92,6 +93,7 @@ h3 {
 }
 
 .form-group input[type="text"]:focus,
+.form-group input[type="password"]:focus,
 .form-group input[type="date"]:focus,
 .form-group select:focus {
     outline: none;
@@ -331,3 +333,11 @@ form button[type="submit"]:hover {
     }
 }
 
+/* ESTILO PARA AVISO DE SENHA */
+.aviso-senha {
+    font-size: 0.8rem;
+    font-style: italic;
+    color: #6b7280;
+    margin-top: 1rem;
+    text-align: center;
+}
